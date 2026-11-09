@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Transaction #{{ sale.id }}{% endblock %}
+
+{% block content %}
+<div style="max-width:960px;margin:2rem auto;padding:0 1.8rem;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+        <div>
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.3rem;">
+                <h1 style="font-size:2rem;letter-spacing:-0.02em;">Edit Transaction #{{ sale.id }}</h1>
+                {% if sale.total_amount >= threshold %}
+                    <span class="badge-vip">★ HIGH-VALUE DEAL</span>
+                {% else %}
+                    <span class="badge-regular">REGULAR TRANSACTION</span>
+                {% endif %}
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">
+                Modifying commercial record for <strong style="color:#ffffff;">{{ sale.product_name }}</strong>
+            </p>
+        </div>
+
+        <a href="{{ url_for('transactions.index') }}" class="btn-cyber-outline" style="font-size:0.85rem;">
+            &larr; Back to Ledger
+        </a>
+    </div>
+
+    <form method="POST" action="{{ url_for('transactions.edit', id=sale.id) }}">
+        {{ form.hidden_tag() }}
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:2rem;">
+            
+            <!-- Left Column: Transaction Details -->
+            <div class="glass-panel" style="padding:2.2rem;">
+                <h3 style="font-size:1.15rem;margin-bottom:1.4rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:0.8rem;">
+                    Update Deal Parameters
+                </h3>
+
+                <!-- Product Name -->
+                <div style="margin-bottom:1.4rem;">
+                    <label class="cyber-label" for="product_name">{{ form.product_name.label.text }} *</label>
+                    {{ form.product_name(class="cyber-input", id="product_name", required=true) }}
+                    {% for err in form.product_name.errors %}
+                        <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Category & Status -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+                    <div>
+                        <label class="cyber-label" for="category">{{ form.category.label.text }} *</label>
+                        {{ form.category(class="cyber-select", id="category", required=true) }}
+                    </div>
+                    <div>
+                        <label class="cyber-label" for="status">{{ form.status.label.text }}</label>
+                        {{ form.status(class="cyber-select", id="status") }}
+                    </div>
+                </div>
+
+                <!-- Quantity & Unit Price -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+                    <div>
+                        <label class="cyber-label" for="transaction-quantity">Quantity *</label>
+                        {{ form.quantity(class="cyber-input font-mono-numbers", id="transaction-quantity", min=1, required=true) }}
+                        {% for err in form.quantity.errors %}
+                            <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <label class="cyber-label" for="transaction-price">Unit Price ({{ current_user.currency }}) *</label>
+                        {{ form.unit_price(class="cyber-input font-mono-numbers", id="transaction-price", step="0.01", min=0.01, required=true) }}
+                        {% for err in form.unit_price.errors %}
+                            <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Customer Name & Date -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+                    <div>
+                        <label class="cyber-label" for="customer_name">Client / Customer</label>
+                        {{ form.customer_name(class="cyber-input", id="customer_name") }}
+                    </div>
+                    <div>
+                        <label class="cyber-label" for="transaction_date">Transaction Date *</label>
+                        {{ form.transaction_date(class="cyber-input", id="transaction_date", required=true) }}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div style="margin-bottom:1.5rem;">
+                    <label class="cyber-label" for="description">Description / Technical Notes</label>
+                    {{ form.description(class="cyber-input", rows=4, id="description") }}
+                </div>
+
+                <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                    <a href="{{ url_for('transactions.index') }}" class="btn-cyber-outline">Cancel</a>
+                    <button type="submit" class="btn-cyber-primary" style="padding:0.75rem 1.8rem;">
+                        <span>Update Transaction</span>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Live Telemetry & Quick Info -->
+            <div>
+                <div class="glass-panel" style="padding:1.8rem;position:sticky;top:90px;">
+                    <h3 style="font-size:1.1rem;margin-bottom:1.2rem;color:#ffffff;">Deal Telemetry</h3>
+
+                    <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-md);padding:1.4rem;text-align:center;margin-bottom:1.4rem;">
+                        <div class="kpi-label">Calculated Revenue</div>
+                        <div id="preview-total-amount" 
+                             class="font-mono-numbers" 
+                             style="font-size:2.2rem;font-weight:800;color:#22d3ee;margin:0.4rem 0;"
+                             data-threshold="{{ threshold }}"
+                             data-currency="{{ current_user.currency }}">
+                            {{ current_user.currency }}{{ "%.2f"|format(sale.total_amount) }}
+                        </div>
+                        <div id="preview-threshold-badge" style="margin-top:0.6rem;">
+                            {% if sale.total_amount >= threshold %}
+                                <span class="badge-vip">★ HIGH-VALUE DEAL (≥ {{ current_user.currency }}{{ threshold|int }})</span>
+                            {% else %}
+                                <span class="badge-regular">Regular Sale (&lt; {{ current_user.currency }}{{ threshold|int }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div style="font-size:0.84rem;color:var(--text-secondary);line-height:1.6;">
+                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <span>Record ID:</span>
+                            <span style="color:#ffffff;font-weight:600;">#{{ sale.id }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <span>Threshold:</span>
+                            <span style="color:#fde68a;">{{ current_user.currency }}{{ threshold|int }}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;">
+                            <span>Created At:</span>
+                            <span style="color:var(--text-muted);">{{ sale.created_at.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>
+{% endblock %}

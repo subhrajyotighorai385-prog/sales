@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction Management{% endblock %}
+
+{% block content %}
+<div style="max-width:1440px;margin:0 auto;padding:2rem 1.8rem;">
+
+    <!-- Header & Action Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;margin-bottom:2rem;">
+        <div>
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.3rem;">
+                <h1 style="font-size:2rem;letter-spacing:-0.02em;">Transaction Ledger</h1>
+                <span class="badge-vip" style="font-size:0.72rem;">High-Value Cutoff: &ge;{{ current_user.currency }}{{ threshold|int }}</span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">
+                Search, filter, categorize, import, and manage enterprise sales records.
+            </p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+            <!-- Download Sample CSV -->
+            <a href="{{ url_for('transactions.sample_csv') }}" class="btn-cyber-outline" style="padding:0.55rem 1rem;font-size:0.85rem;" title="Download standard CSV template">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Sample CSV</span>
+            </a>
+
+            <!-- Import CSV Button (Opens Modal) -->
+            <button onclick="openModal('modal-csv-import')" class="btn-cyber-purple" style="padding:0.55rem 1rem;font-size:0.85rem;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <span>Import CSV</span>
+            </button>
+
+            <!-- Export Filtered CSV -->
+            <a href="{{ url_for('transactions.export_csv', category=current_category, date_from=date_from, date_to=date_to, type=sale_type, sort=sort_by) }}" class="btn-cyber-outline" style="padding:0.55rem 1rem;font-size:0.85rem;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Export CSV</span>
+            </a>
+
+            <!-- Add Transaction -->
+            <a href="{{ url_for('transactions.add') }}" class="btn-cyber-primary" style="padding:0.55rem 1.2rem;font-size:0.85rem;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Transaction</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters, Search & Sorting Controls -->
+    <div class="glass-panel" style="padding:1.4rem;margin-bottom:1.8rem;">
+        <form method="GET" action="{{ url_for('transactions.index') }}" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:1rem;align-items:end;">
+            
+            <!-- Search Query -->
+            <div style="grid-column:span 2;">
+                <label class="cyber-label" for="search-input">Search Deals, Clients, Notes</label>
+                <div style="position:relative;">
+                    <input type="text" name="q" id="search-input" value="{{ search_query }}" class="cyber-input" placeholder="Keyword (e.g. AI, Neural, Apex, Cloud)..." style="padding-left:2.4rem;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;">🔍</span>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div>
+                <label class="cyber-label" for="filter-category">Category</label>
+                <select name="category" id="filter-category" class="cyber-select">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Sale Type Filter (All, Premium, Regular) -->
+            <div>
+                <label class="cyber-label" for="filter-type">Deal Type</label>
+                <select name="type" id="filter-type" class="cyber-select">
+                    <option value="all" {% if sale_type == 'all' %}selected{% endif %}>All Deals</option>
+                    <option value="premium" {% if sale_type == 'premium' %}selected{% endif %}>★ High-Value Only</option>
+                    <option value="regular" {% if sale_type == 'regular' %}selected{% endif %}>Regular Sales Only</option>
+                </select>
+            </div>
+
+            <!-- Date From -->
+            <div>
+                <label class="cyber-label" for="filter-date-from">From Date</label>
+                <input type="date" name="date_from" id="filter-date-from" value="{{ date_from }}" class="cyber-input">
+            </div>
+
+            <!-- Date To -->
+            <div>
+                <label class="cyber-label" for="filter-date-to">To Date</label>
+                <input type="date" name="date_to" id="filter-date-to" value="{{ date_to }}" class="cyber-input">
+            </div>
+
+            <!-- Sort By -->
+            <div>
+                <label class="cyber-label" for="filter-sort">Sort Order</label>
+                <select name="sort" id="filter-sort" class="cyber-select">
+                    <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date: Newest First</option>
+                    <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date: Oldest First</option>
+                    <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Amount: Highest First</option>
+                    <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Amount: Lowest First</option>
+                    <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Product Name (A-Z)</option>
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display:flex;gap:0.5rem;">
+                <button type="submit" class="btn-cyber-primary" style="flex:1;padding:0.75rem;">
+                    Apply Filters
+                </button>
+                <a href="{{ url_for('transactions.index') }}" class="btn-cyber-outline" style="padding:0.75rem 0.9rem;" title="Reset Filters">
+                    ↺
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Filter Summary & Result Count -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;color:var(--text-secondary);font-size:0.88rem;">
+        <div>
+            Showing <strong style="color:#ffffff;">{{ pagination.total }}</strong> transactions 
+            {% if search_query %}matching "<em>{{ search_query }}</em>"{% endif %}
+            {% if current_category != 'All' %}&bull; Category: <span class="badge-category">{{ current_category }}</span>{% endif %}
+            {% if sale_type == 'premium' %}&bull; <span class="badge-vip">★ High-Value Only</span>{% endif %}
+        </div>
+        <div style="color:var(--text-muted);">
+            Page {{ pagination.page }} of {{ pagination.pages or 1 }}
+        </div>
+    </div>
+
+    <!-- Transactions Data Table -->
+    <div class="glass-panel" style="padding:1rem;margin-bottom:2rem;">
+        {% if sales %}
+            <div class="cyber-table-wrap">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Deal ID</th>
+                            <th>Product / Service</th>
+                            <th>Category</th>
+                            <th>Customer / Client</th>
+                            <th>Date</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Total Revenue</th>
+                            <th>Class</th>
+                            <th>Status</th>
+                            <th style="text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sales %}
+                            <tr class="{% if s.total_amount >= threshold %}row-premium{% endif %}">
+                                <td class="font-mono-numbers" style="color:var(--text-muted);font-size:0.8rem;">
+                                    #{{ s.id }}
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;color:#ffffff;">{{ s.product_name }}</div>
+                                    {% if s.description %}
+                                        <div style="font-size:0.75rem;color:var(--text-muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                            {{ s.description }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge-category">{{ s.category }}</span>
+                                </td>
+                                <td>
+                                    <span style="color:#e2e8f0;">{{ s.customer_name or 'Enterprise Client' }}</span>
+                                </td>
+                                <td class="font-mono-numbers" style="color:var(--text-secondary);font-size:0.85rem;">
+                                    {{ s.transaction_date.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="font-mono-numbers">{{ s.quantity }}</td>
+                                <td class="font-mono-numbers" style="color:var(--text-secondary);">
+                                    {{ current_user.currency }}{{ "%.2f"|format(s.unit_price) }}
+                                </td>
+                                <td class="font-mono-numbers" style="font-weight:700;font-size:0.95rem;color:{% if s.total_amount >= threshold %}#fde68a{% else %}#22d3ee{% endif %};">
+                                    {{ current_user.currency }}{{ "%.2f"|format(s.total_amount) }}
+                                </td>
+                                <td>
+                                    {% if s.total_amount >= threshold %}
+                                        <span class="badge-vip" title="High-Value Sale">★ VIP</span>
+                                    {% else %}
+                                        <span class="badge-regular">REG</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-dot status-dot-{{ s.status.lower() }}"></span>
+                                    <span style="font-size:0.8rem;color:#cbd5e1;margin-left:4px;">{{ s.status }}</span>
+                                </td>
+                                <td style="text-align:right;">
+                                    <div style="display:inline-flex;align-items:center;gap:0.4rem;">
+                                        <!-- Quick Inspect Details -->
+                                        <button onclick="showTransactionDetails({{ s.id }})" class="btn-cyber-outline" style="padding:0.3rem 0.6rem;font-size:0.75rem;" title="View Details">
+                                            Inspect
+                                        </button>
+                                        
+                                        <!-- Edit -->
+                                        <a href="{{ url_for('transactions.edit', id=s.id) }}" class="btn-cyber-outline" style="padding:0.3rem 0.6rem;font-size:0.75rem;" title="Edit Transaction">
+                                            Edit
+                                        </a>
+
+                                        <!-- Delete Form -->
+                                        <form method="POST" action="{{ url_for('transactions.delete', id=s.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete transaction #{{ s.id }} ({{ s.product_name }})?');" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn-cyber-danger" style="padding:0.3rem 0.6rem;font-size:0.75rem;" title="Delete">
+                                                &times;
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            {% if pagination.pages > 1 %}
+                <div style="display:flex;align-items:center;justify-content:center;margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.06);">
+                    <ul class="pagination-cyber">
+                        {% if pagination.has_prev %}
+                            <li class="page-item-cyber">
+                                <a href="{{ url_for('transactions.index', page=pagination.prev_num, q=search_query, category=current_category, date_from=date_from, date_to=date_to, type=sale_type, sort=sort_by) }}">
+                                    &larr; Prev
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if p %}
+                                <li class="page-item-cyber {% if p == pagination.page %}active{% endif %}">
+                                    <a href="{{ url_for('transactions.index', page=p, q=search_query, category=current_category, date_from=date_from, date_to=date_to, type=sale_type, sort=sort_by) }}">
+                                        {{ p }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li style="color:var(--text-muted);padding:0 4px;">&bull;&bull;&bull;</li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if pagination.has_next %}
+                            <li class="page-item-cyber">
+                                <a href="{{ url_for('transactions.index', page=pagination.next_num, q=search_query, category=current_category, date_from=date_from, date_to=date_to, type=sale_type, sort=sort_by) }}">
+                                    Next &rarr;
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Empty Filter State -->
+            <div style="text-align:center;padding:3.5rem 1rem;">
+                <div style="font-size:2.8rem;margin-bottom:0.8rem;">🔍</div>
+                <h3 style="font-size:1.25rem;margin-bottom:0.4rem;">No Matching Transactions</h3>
+                <p style="color:var(--text-secondary);font-size:0.9rem;max-width:440px;margin:0 auto 1.5rem;">
+                    No sales matched your search criteria. Try relaxing your filters or resetting search parameters.
+                </p>
+                <div style="display:flex;justify-content:center;gap:1rem;">
+                    <a href="{{ url_for('transactions.index') }}" class="btn-cyber-outline">Reset Filters</a>
+                    <a href="{{ url_for('transactions.add') }}" class="btn-cyber-primary">+ Add New Deal</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- CSV Import Modal -->
+<div id="modal-csv-import" class="modal-cyber-backdrop">
+    <div class="modal-cyber-content">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:1rem;">
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+                <span style="font-size:1.4rem;">📥</span>
+                <h3 style="font-size:1.25rem;">Bulk Import Transactions</h3>
+            </div>
+            <button onclick="closeModal('modal-csv-import')" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1.4rem;">&times;</button>
+        </div>
+
+        <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.5rem;line-height:1.6;">
+            Upload your sales spreadsheet in CSV format. The parser will automatically map fields (<code>product_name</code>, <code>category</code>, <code>quantity</code>, <code>unit_price</code>, <code>transaction_date</code>, <code>customer_name</code>).
+        </p>
+
+        <form method="POST" action="{{ url_for('transactions.import_csv') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div style="border:2px dashed rgba(6,182,212,0.4);background:rgba(6,182,212,0.03);border-radius:var(--radius-lg);padding:2rem 1rem;text-align:center;margin-bottom:1.5rem;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+                <label for="csv-file-input" style="cursor:pointer;display:block;">
+                    <span style="color:var(--accent-cyan);font-weight:600;text-decoration:underline;">Click to choose CSV file</span>
+                    <span style="color:var(--text-muted);display:block;font-size:0.78rem;margin-top:0.3rem;">Max file size: 16 MB (.csv)</span>
+                </label>
+                <input type="file" id="csv-file-input" name="csv_file" accept=".csv" required style="margin-top:0.8rem;color:#cbd5e1;font-size:0.85rem;">
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+                <a href="{{ url_for('transactions.sample_csv') }}" style="color:var(--text-secondary);font-size:0.82rem;text-decoration:none;">
+                    Need a template? <u>Download Sample CSV</u>
+                </a>
+                <div style="display:flex;gap:0.75rem;">
+                    <button type="button" onclick="closeModal('modal-csv-import')" class="btn-cyber-outline">Cancel</button>
+                    <button type="submit" class="btn-cyber-primary">Upload &amp; Process</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile &amp; Settings{% endblock %}
+
+{% block content %}
+<div style="max-width:960px;margin:2rem auto;padding:0 1.8rem;">
+
+    <div style="margin-bottom:2rem;">
+        <h1 style="font-size:2rem;letter-spacing:-0.02em;margin-bottom:0.3rem;">Platform Settings &amp; Profile</h1>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">
+            Configure your enterprise threshold, currency, organization credentials, and visual accents.
+        </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.profile') }}">
+        {{ form.hidden_tag() }}
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:2rem;">
+            
+            <!-- Left Column: Settings Form -->
+            <div class="glass-panel" style="padding:2.2rem;">
+                <h3 style="font-size:1.15rem;margin-bottom:1.4rem;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:0.8rem;">
+                    Enterprise Identity &amp; Thresholds
+                </h3>
+
+                <!-- Username & Email -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+                    <div>
+                        <label class="cyber-label" for="username">{{ form.username.label.text }} *</label>
+                        {{ form.username(class="cyber-input", id="username", required=true) }}
+                        {% for err in form.username.errors %}
+                            <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <label class="cyber-label" for="email">{{ form.email.label.text }} *</label>
+                        {{ form.email(class="cyber-input", id="email", required=true) }}
+                        {% for err in form.email.errors %}
+                            <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Company Name & Currency -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+                    <div>
+                        <label class="cyber-label" for="company_name">{{ form.company_name.label.text }}</label>
+                        {{ form.company_name(class="cyber-input", id="company_name") }}
+                    </div>
+                    <div>
+                        <label class="cyber-label" for="currency">{{ form.currency.label.text }}</label>
+                        {{ form.currency(class="cyber-select", id="currency") }}
+                    </div>
+                </div>
+
+                <!-- Premium Threshold (Crucial Setting) -->
+                <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-md);padding:1.4rem;margin-bottom:1.6rem;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+                        <span style="color:#f59e0b;font-size:1.1rem;">★</span>
+                        <label class="cyber-label" for="premium_threshold" style="color:#fde68a;font-weight:700;margin-bottom:0;">
+                            Permanent High-Value Sales Threshold ({{ current_user.currency }})
+                        </label>
+                    </div>
+                    <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.8rem;">
+                        Any transaction with total amount greater than or equal to this threshold is automatically categorized as High-Value in your 3D visualizations, aggregations, and PDF reports.
+                    </p>
+                    {{ form.premium_threshold(class="cyber-input font-mono-numbers", id="premium_threshold", step="1.0", style="font-size:1.1rem;font-weight:700;color:#fde68a;") }}
+                    {% for err in form.premium_threshold.errors %}
+                        <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Theme Accent Selection -->
+                <div style="margin-bottom:1.5rem;">
+                    <label class="cyber-label" for="theme_accent">{{ form.theme_accent.label.text }}</label>
+                    {{ form.theme_accent(class="cyber-select", id="theme_accent") }}
+                </div>
+
+                <!-- Password Update -->
+                <div style="margin-bottom:1.8rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.2rem;">
+                    <label class="cyber-label" for="new_password">{{ form.new_password.label.text }}</label>
+                    {{ form.new_password(class="cyber-input", id="new_password", placeholder="••••••••") }}
+                    <span style="font-size:0.75rem;color:var(--text-muted);display:block;margin-top:0.3rem;">Leave empty if you do not want to change your current password.</span>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;">
+                    <button type="submit" class="btn-cyber-primary" style="padding:0.75rem 2rem;">
+                        Save Configuration
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Profile Summary & Danger Zone -->
+            <div>
+                <!-- User Summary Card -->
+                <div class="glass-panel" style="padding:1.8rem;margin-bottom:1.5rem;text-align:center;">
+                    <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg, #06b6d4, #8b5cf6);display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:1.6rem;font-weight:800;margin:0 auto 1rem;box-shadow:0 0 25px rgba(6,182,212,0.4);">
+                        {{ current_user.avatar_initials }}
+                    </div>
+                    <h3 style="font-size:1.2rem;margin-bottom:0.2rem;">{{ current_user.username }}</h3>
+                    <div style="color:var(--accent-cyan);font-size:0.84rem;margin-bottom:1rem;">
+                        {{ current_user.company_name or 'Aura Enterprise' }}
+                    </div>
+                    <div style="font-size:0.82rem;color:var(--text-muted);border-top:1px solid rgba(255,255,255,0.08);padding-top:0.8rem;">
+                        Member since {{ current_user.created_at.strftime('%B %Y') }}
+                    </div>
+                </div>
+
+                <!-- Workspace Management Card -->
+                <div class="glass-panel" style="padding:1.6rem;">
+                    <h4 style="font-size:1rem;margin-bottom:1rem;color:#cbd5e1;">Workspace Actions</h4>
+                    
+                    <form method="POST" action="{{ url_for('dashboard.load_demo_data') }}" style="margin-bottom:0.8rem;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-cyber-outline" style="width:100%;justify-content:center;font-size:0.85rem;">
+                            ↺ Restore 20 Demo Deals
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('dashboard.clear_data') }}" onsubmit="return confirm('WARNING: This will permanently delete ALL transactions on your account. Are you sure?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-cyber-danger" style="width:100%;justify-content:center;font-size:0.85rem;">
+                            ⚠ Wipe All Transactions
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+</div>
+{% endblock %}

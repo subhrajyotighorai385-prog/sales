@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}High-Value Sales Aggregator{% endblock %}
+
+{% block content %}
+<div style="max-width:1440px;margin:0 auto;padding:2rem 1.8rem;">
+
+    <!-- Top Headline & Python List Comprehension Banner -->
+    <div style="margin-bottom:2.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;margin-bottom:1rem;">
+            <div>
+                <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,0.2);border:1px solid #f59e0b;display:flex;align-items:center;justify-content:center;color:#fbbf24;font-size:1.2rem;">
+                        👑
+                    </div>
+                    <h1 style="font-size:2.2rem;letter-spacing:-0.02em;">High-Value Sales Aggregator</h1>
+                    <span class="badge-vip" style="font-size:0.78rem;">Core Intelligence Engine</span>
+                </div>
+                <p style="color:var(--text-secondary);font-size:0.95rem;">
+                    Algorithmic separation of high-ticket enterprise contracts using Python list comprehension.
+                </p>
+            </div>
+
+            <!-- Custom Threshold Simulation Form -->
+            <div class="glass-panel" style="padding:0.75rem 1.25rem;">
+                <form method="GET" action="{{ url_for('transactions.premium_aggregator') }}" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                    <span style="font-size:0.85rem;color:var(--text-muted);font-weight:600;">ACTIVE THRESHOLD:</span>
+                    <div style="display:flex;align-items:center;gap:0.3rem;">
+                        <span style="font-size:1.1rem;color:#fde68a;font-weight:700;">{{ current_user.currency }}</span>
+                        <input type="number" name="threshold" value="{{ threshold|int }}" min="1" step="50" class="cyber-input font-mono-numbers" style="width:120px;padding:0.4rem 0.6rem;font-size:1rem;font-weight:700;color:#fde68a;">
+                    </div>
+                    <button type="submit" class="btn-cyber-gold" style="padding:0.45rem 1rem;font-size:0.85rem;">
+                        Recalculate
+                    </button>
+                    {% if threshold != user_threshold %}
+                        <a href="{{ url_for('transactions.premium_aggregator') }}" class="btn-cyber-outline" style="padding:0.45rem 0.8rem;font-size:0.8rem;" title="Reset to saved user threshold">
+                            Reset ({{ current_user.currency }}{{ user_threshold|int }})
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Python List Comprehension Architecture Banner -->
+        <div class="glass-panel" style="background:rgba(8,12,24,0.85);border-color:rgba(245,158,11,0.25);padding:1.2rem 1.6rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+            <div style="display:flex;align-items:center;gap:1rem;">
+                <span style="color:#22d3ee;font-family:'Space Grotesk',monospace;font-size:1.2rem;">&lt;/&gt;</span>
+                <div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;">
+                        Python List Comprehension Pipeline
+                    </div>
+                    <code style="color:#fde68a;font-size:0.92rem;font-family:'Space Grotesk',monospace;">
+                        premium_sales = [sale for sale in sales if sale.total_amount &gt;= {{ threshold|int }}]
+                    </code>
+                </div>
+            </div>
+            <div style="font-size:0.82rem;color:#94a3b8;">
+                Runtime Complexity: <strong style="color:#22d3ee;">O(n)</strong> &bull; Memory: <strong style="color:#10b981;">Optimized</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. COMPARISON KPI METRICS (High-Value vs Regular) -->
+    <div class="grid-cols-4" style="margin-bottom:2.5rem;">
+        
+        <!-- High-Value Revenue -->
+        <div class="glass-panel kpi-card glass-card-premium" style="--card-accent: var(--accent-gold);">
+            <div class="kpi-label" style="color:#fde68a;">High-Value Revenue</div>
+            <div class="kpi-value font-mono-numbers text-gradient-gold">
+                {{ current_user.currency }}{{ agg.premium_revenue|format_number }}
+            </div>
+            <div class="kpi-trend trend-up">
+                <span style="color:#fde68a;">★ {{ agg.premium_revenue_pct }}% of all platform revenue</span>
+            </div>
+        </div>
+
+        <!-- Regular Sales Revenue -->
+        <div class="glass-panel kpi-card" style="--card-accent: var(--accent-cyan);">
+            <div class="kpi-label">Regular Sales Revenue</div>
+            <div class="kpi-value font-mono-numbers text-gradient-cyan">
+                {{ current_user.currency }}{{ agg.regular_revenue|format_number }}
+            </div>
+            <div class="kpi-trend trend-neutral">
+                <span>{{ agg.regular_revenue_pct }}% of platform revenue</span>
+            </div>
+        </div>
+
+        <!-- Deal Count Comparison -->
+        <div class="glass-panel kpi-card" style="--card-accent: var(--accent-purple);">
+            <div class="kpi-label">Deal Volume Split</div>
+            <div class="kpi-value font-mono-numbers" style="color:#ffffff;">
+                <span style="color:#f59e0b;">{{ agg.premium_count }}</span>
+                <span style="color:var(--text-muted);font-size:1.2rem;">/</span>
+                <span style="color:#38bdf8;">{{ agg.regular_count }}</span>
+            </div>
+            <div class="kpi-trend trend-neutral">
+                <span>{{ agg.premium_volume_pct }}% High-Value Deals</span>
+            </div>
+        </div>
+
+        <!-- Average Deal Comparison -->
+        <div class="glass-panel kpi-card" style="--card-accent: var(--accent-emerald);">
+            <div class="kpi-label">Premium Avg Deal Size</div>
+            <div class="kpi-value font-mono-numbers" style="color:#34d399;">
+                {{ current_user.currency }}{{ agg.premium_avg_value|format_number }}
+            </div>
+            <div class="kpi-trend trend-up">
+                <span>vs {{ current_user.currency }}{{ agg.regular_avg_value|format_number }} regular avg</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Ratio Bar -->
+    <div class="glass-panel" style="padding:1.6rem;margin-bottom:2.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">
+            <div style="font-weight:700;font-size:0.95rem;display:flex;align-items:center;gap:0.5rem;">
+                <span style="color:#f59e0b;">★ High-Value Yield: {{ agg.premium_revenue_pct }}%</span>
+                <span style="color:var(--text-muted);">&bull;</span>
+                <span style="color:#38bdf8;">Regular Yield: {{ agg.regular_revenue_pct }}%</span>
+            </div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);">
+                Total Contract Volume: <strong style="color:#ffffff;">{{ current_user.currency }}{{ agg.total_revenue|format_number }}</strong>
+            </div>
+        </div>
+
+        <!-- Progress Track -->
+        <div style="width:100%;height:14px;background:rgba(255,255,255,0.06);border-radius:9999px;overflow:hidden;display:flex;">
+            <div style="width:{{ agg.premium_revenue_pct }}%;background:linear-gradient(90deg, #f59e0b, #fbbf24);box-shadow:0 0 15px rgba(245,158,11,0.5);" title="High-Value: {{ agg.premium_revenue_pct }}%"></div>
+            <div style="width:{{ agg.regular_revenue_pct }}%;background:linear-gradient(90deg, #0284c7, #22d3ee);box-shadow:0 0 15px rgba(6,182,212,0.5);" title="Regular: {{ agg.regular_revenue_pct }}%"></div>
+        </div>
+    </div>
+
+    <!-- 2. HIGHEST-VALUE TRANSACTIONS (Top Deals Spotlight) -->
+    <div class="glass-panel" style="padding:1.8rem;margin-bottom:2.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+            <div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <span style="font-size:1.3rem;">🏆</span>
+                    <h2 style="font-size:1.4rem;">Top Enterprise High-Value Contracts</h2>
+                </div>
+                <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.2rem;">
+                    Extracted dynamically where <code>total_amount &ge; {{ current_user.currency }}{{ threshold|int }}</code>
+                </p>
+            </div>
+            <a href="{{ url_for('transactions.export_csv', type='premium') }}" class="btn-cyber-outline" style="font-size:0.85rem;">
+                Export Premium Deals CSV &rarr;
+            </a>
+        </div>
+
+        {% if agg.top_premium_deals %}
+            <div class="cyber-table-wrap">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Enterprise Product / Service</th>
+                            <th>Category</th>
+                            <th>Client / Customer</th>
+                            <th>Date</th>
+                            <th>Quantity</th>
+                            <th>Unit Value</th>
+                            <th>Total Contract</th>
+                            <th style="text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deal in agg.top_premium_deals %}
+                            <tr class="row-premium">
+                                <td>
+                                    <div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.2);border:1px solid #f59e0b;display:flex;align-items:center;justify-content:center;color:#fde68a;font-weight:800;font-size:0.8rem;">
+                                        #{{ loop.index }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:700;color:#ffffff;font-size:0.95rem;">{{ deal.product_name }}</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">Deal ID: #{{ deal.id }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge-category">{{ deal.category }}</span>
+                                </td>
+                                <td>
+                                    <span style="color:#e2e8f0;font-weight:500;">{{ deal.customer_name or 'Enterprise Client' }}</span>
+                                </td>
+                                <td class="font-mono-numbers" style="color:var(--text-secondary);font-size:0.85rem;">
+                                    {{ deal.transaction_date.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="font-mono-numbers">{{ deal.quantity }}</td>
+                                <td class="font-mono-numbers" style="color:var(--text-secondary);">
+                                    {{ current_user.currency }}{{ "%.2f"|format(deal.unit_price) }}
+                                </td>
+                                <td class="font-mono-numbers" style="font-size:1.1rem;font-weight:800;color:#fde68a;">
+                                    {{ current_user.currency }}{{ "%.2f"|format(deal.total_amount) }}
+                                </td>
+                                <td style="text-align:right;">
+                                    <button onclick="showTransactionDetails({{ deal.id }})" class="btn-cyber-outline" style="padding:0.35rem 0.75rem;font-size:0.78rem;">
+                                        Inspect
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align:center;padding:3rem 1rem;">
+                <div style="font-size:2.5rem;margin-bottom:0.8rem;">💎</div>
+                <h4 style="font-size:1.2rem;margin-bottom:0.4rem;">No Deals Meet Current Threshold</h4>
+                <p style="color:var(--text-secondary);font-size:0.9rem;max-width:440px;margin:0 auto 1.5rem;">
+                    No recorded transactions meet or exceed {{ current_user.currency }}{{ threshold|int }}. Try lowering the active threshold or adding a high-ticket transaction.
+                </p>
+                <a href="{{ url_for('transactions.add') }}" class="btn-cyber-gold">+ Add High-Value Transaction</a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

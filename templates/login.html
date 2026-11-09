@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — High Value Sales 3D{% endblock %}
+
+{% block content %}
+<div style="min-height:85vh;display:flex;align-items:center;justify-content:center;padding:2.5rem 1.5rem;position:relative;">
+    
+    <!-- Ambient 3D canvas backdrop -->
+    <div id="landing-3d-canvas" class="canvas-3d-hero" style="opacity:0.35;"></div>
+
+    <div class="glass-panel" style="position:relative;z-index:10;width:100%;max-width:440px;padding:2.6rem 2.2rem;border-radius:var(--radius-xl);box-shadow:0 25px 60px rgba(0,0,0,0.8);">
+        
+        <!-- Header -->
+        <div style="text-align:center;margin-bottom:2rem;">
+            <div class="brand-cube-icon" style="margin:0 auto 1rem;width:44px;height:44px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </div>
+            <h2 style="font-size:1.65rem;margin-bottom:0.4rem;">Access 3D Terminal</h2>
+            <p style="color:var(--text-secondary);font-size:0.88rem;">Enter your credentials to enter sales matrix.</p>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            {{ form.hidden_tag() }}
+
+            <div style="margin-bottom:1.3rem;">
+                <label class="cyber-label" for="username">{{ form.username.label.text }}</label>
+                {{ form.username(class="cyber-input", placeholder="Username or email", id="username", required=true, autofocus=true) }}
+                {% for err in form.username.errors %}
+                    <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-bottom:1.3rem;">
+                <label class="cyber-label" for="password">{{ form.password.label.text }}</label>
+                <div style="position:relative;">
+                    {{ form.password(class="cyber-input", placeholder="••••••••", id="password", required=true) }}
+                    <button type="button" class="btn-toggle-password" data-target="password" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;" title="Toggle Password Visibility">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                {% for err in form.password.errors %}
+                    <div style="color:var(--accent-rose);font-size:0.8rem;margin-top:0.3rem;">{{ err }}</div>
+                {% endfor %}
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.8rem;font-size:0.85rem;">
+                <label class="cyber-checkbox-wrap">
+                    {{ form.remember_me(class="cyber-checkbox") }}
+                    <span style="color:var(--text-secondary);">Keep me signed in</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-cyber-primary" style="width:100%;padding:0.8rem;font-size:1rem;margin-bottom:1.5rem;">
+                <span>Authenticate &amp; Enter</span>
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+        </form>
+
+        <div style="text-align:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:1.2rem;font-size:0.88rem;color:var(--text-secondary);">
+            Don't have an enterprise account? 
+            <a href="{{ url_for('auth.register') }}" style="color:var(--accent-cyan);text-decoration:none;font-weight:600;">Register Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Executive 3D Dashboard{% endblock %}
+
+{% block content %}
+<div style="max-width:1440px;margin:0 auto;padding:2rem 1.8rem;">
+
+    <!-- Top Dashboard Header & Time Filter Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;margin-bottom:2rem;">
+        <div>
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.3rem;">
+                <h1 style="font-size:2rem;letter-spacing:-0.02em;">3D Intelligence Dashboard</h1>
+                <span class="badge-vip" style="font-size:0.72rem;">Threshold: &ge;{{ current_user.currency }}{{ threshold|int }}</span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:0.9rem;">
+                Corporate Telemetry for <strong style="color:#ffffff;">{{ current_user.company_name or current_user.username }}</strong>
+            </p>
+        </div>
+
+        <!-- Date Range Filter Tabs -->
+        <div style="display:flex;align-items:center;gap:0.4rem;background:rgba(15,22,42,0.8);border:1px solid var(--border-subtle);padding:0.35rem;border-radius:var(--radius-md);flex-wrap:wrap;">
+            <a href="{{ url_for('dashboard.index', range='all') }}" class="btn-cyber-outline {% if time_filter == 'all' %}active{% endif %}" style="padding:0.4rem 0.8rem;font-size:0.8rem;{% if time_filter == 'all' %}background:rgba(6,182,212,0.2);border-color:var(--accent-cyan);color:#22d3ee;{% endif %}">
+                All Time
+            </a>
+            <a href="{{ url_for('dashboard.index', range='today') }}" class="btn-cyber-outline {% if time_filter == 'today' %}active{% endif %}" style="padding:0.4rem 0.8rem;font-size:0.8rem;{% if time_filter == 'today' %}background:rgba(6,182,212,0.2);border-color:var(--accent-cyan);color:#22d3ee;{% endif %}">
+                Today
+            </a>
+            <a href="{{ url_for('dashboard.index', range='7days') }}" class="btn-cyber-outline {% if time_filter == '7days' %}active{% endif %}" style="padding:0.4rem 0.8rem;font-size:0.8rem;{% if time_filter == '7days' %}background:rgba(6,182,212,0.2);border-color:var(--accent-cyan);color:#22d3ee;{% endif %}">
+                Last 7 Days
+            </a>
+            <a href="{{ url_for('dashboard.index', range='30days') }}" class="btn-cyber-outline {% if time_filter == '30days' %}active{% endif %}" style="padding:0.4rem 0.8rem;font-size:0.8rem;{% if time_filter == '30days' %}background:rgba(6,182,212,0.2);border-color:var(--accent-cyan);color:#22d3ee;{% endif %}">
+                Last 30 Days
+            </a>
+            <a href="{{ url_for('dashboard.index', range='this_month') }}" class="btn-cyber-outline {% if time_filter == 'this_month' %}active{% endif %}" style="padding:0.4rem 0.8rem;font-size:0.8rem;{% if time_filter == 'this_month' %}background:rgba(6,182,212,0.2);border-color:var(--accent-cyan);color:#22d3ee;{% endif %}">
+                This Month
+            </a>
+        </div>
+    </div>
+
+    <!-- 1. EXECUTIVE KPI METRICS (5 Key Performance Cards) -->
+    <div class="grid-cols-4" style="margin-bottom:2rem;">
+        
+        <!-- Total Revenue -->
+        <div class="glass-panel kpi-card" style="--card-accent: var(--accent-cyan);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div class="kpi-label">Total Revenue</div>
+                    <div class="kpi-value font-mono-numbers text-gradient-cyan">
+                        {{ current_user.currency }}{{ agg.total_revenue|format_number if agg.total_revenue else '0.00' }}
+                    </div>
+                </div>
+                <div class="kpi-icon-wrap" style="background:rgba(6,182,212,0.12);color:var(--accent-cyan);">
+                    💰
+                </div>
+            </div>
+            <div class="kpi-trend {% if growth_pct >= 0 %}trend-up{% else %}trend-down{% endif %}">
+                <span>{% if growth_pct >= 0 %}&uarr; +{{ growth_pct }}%{% else %}&darr; {{ growth_pct }}%{% endif %} vs prior period</span>
+            </div>
+        </div>
+
+        <!-- Total Transactions -->
+        <div class="glass-panel kpi-card" style="--card-accent: var(--accent-blue);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div class="kpi-label">Total Transactions</div>
+                    <div class="kpi-value font-mono-numbers" style="color:#60a5fa;">
+                        {{ agg.total_count }}
+                    </div>
+                </div>
+                <div class="kpi-icon-wrap" style="background:rgba(59,130,246,0.12);color:var(--accent-blue);">
+                    📊
+                </div>
+            </div>
+            <div class="kpi-trend trend-neutral">
+                <span>Across {{ agg.category_summary|length }} product categories</span>
+            </div>
+        </div>
+
+        <!-- Premium Sales (Core Highlight) -->
+        <div class="glass-panel kpi-card glass-card-premium" style="--card-accent: var(--accent-gold);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div class="kpi-label" style="color:#fde68a;">★ Premium Sales (≥ {{ current_user.currency }}{{ threshold|int }})</div>
+                    <div class="kpi-value font-mono-numbers text-gradient-gold">
+                        {{ current_user.currency }}{{ agg.premium_revenue|format_number }}
+                    </div>
+                </div>
+                <div class="kpi-icon-wrap" style="background:rgba(245,158,11,0.2);color:#fbbf24;">
+                    👑
+                </div>
+            </div>
+            <div class="kpi-trend trend-up">
+                <span style="color:#fde68a;"><strong>{{ agg.premium_count }} deals</strong> &bull; {{ agg.premium_revenue_pct }}% of all revenue</span>
+            </div>
+        </div>
+
+        <!-- Average Transaction Value -->
+        <div class="glass-panel kpi-card" style="--card-accent: var(--accent-purple);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div class="kpi-label">Avg Transaction Value</div>
+                    <div class="kpi-value font-mono-numbers text-gradient-purple">
+                        {{ current_user.currency }}{{ agg.avg_transaction_value|format_number }}
+                    </div>
+                </div>
+                <div class="kpi-icon-wrap" style="background:rgba(139,92,246,0.12);color:var(--accent-purple);">
+                    ⚡
+                </div>
+            </div>
+            <div class="kpi-trend trend-neutral">
+                <span>High-Value Avg: {{ current_user.currency }}{{ agg.premium_avg_value|format_number }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. INTERACTIVE 3D SALES MATRIX VISUALIZATION -->
+    <div class="glass-panel" style="padding:1.6rem;margin-bottom:2rem;position:relative;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+            <div>
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#06b6d4;box-shadow:0 0 10px #06b6d4;"></span>
+                    <h3 style="font-size:1.25rem;">Spatial 3D Revenue Matrix</h3>
+                </div>
+                <p style="color:var(--text-muted);font-size:0.84rem;margin-top:0.2rem;">
+                    Interactive Three.js hardware visualization. Gold prisms represent high-value deals (≥ {{ current_user.currency }}{{ threshold|int }}). Hover over any prism for live telemetry.
+                </p>
+            </div>
+            
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+                <span class="badge-vip" style="font-size:0.75rem;">★ Gold: High Value</span>
+                <span class="badge-regular" style="color:#22d3ee;border-color:rgba(6,182,212,0.3);font-size:0.75rem;">■ Cyan: Regular</span>
+            </div>
+        </div>
+
+        <!-- 3D Canvas Box -->
+        <div class="canvas-3d-wrap" id="dashboard-3d-container">
+            <div id="dashboard-3d-canvas" style="width:100%;height:100%;"></div>
+            
+            <!-- Tooltip -->
+            <div id="canvas-3d-tooltip"></div>
+
+            <!-- Overlaid Controls -->
+            <div class="canvas-controls-overlay">
+                <div style="display:flex;gap:4px;border-right:1px solid rgba(255,255,255,0.1);padding-right:8px;margin-right:4px;">
+                    <button class="canvas-control-btn btn-3d-mode active" data-mode="orbit" title="Orbit Matrix View">Orbit View</button>
+                    <button class="canvas-control-btn btn-3d-mode" data-mode="grid" title="Cartesian Grid View">Grid View</button>
+                    <button class="canvas-control-btn btn-3d-mode" data-mode="wave" title="Wave Terrain View">Wave View</button>
+                </div>
+                <button id="btn-3d-rotate" class="canvas-control-btn active" title="Toggle Auto Rotation">Auto: ON</button>
+                <button id="btn-3d-reset" class="canvas-control-btn" title="Reset Camera Perspective">Reset View</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ADVANCED 2D ANALYTICS CHARTS (Chart.js Grid) -->
+    <div class="grid-cols-2" style="margin-bottom:2rem;">
+        
+        <!-- Revenue Over Time Line Chart -->
+        <div class="glass-panel" style="padding:1.6rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+                <div>
+                    <h4 style="font-size:1.1rem;">Revenue Velocity &amp; Premium Trajectory</h4>
+                    <p style="color:var(--text-muted);font-size:0.8rem;">Timeline comparison of total vs high-value sales</p>
+                </div>
+            </div>
+            <div style="height:270px;position:relative;">
+                <canvas id="chart-revenue-line"></canvas>
+            </div>
+        </div>
+
+        <!-- Premium vs Regular Sales Ratio (Doughnut) -->
+        <div class="glass-panel" style="padding:1.6rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+                <div>
+                    <h4 style="font-size:1.1rem;">Premium vs. Regular Revenue Split</h4>
+                    <p style="color:var(--text-muted);font-size:0.8rem;">High-Value Aggregator distribution</p>
+                </div>
+                <div class="badge-vip" style="font-size:0.72rem;">{{ agg.premium_revenue_pct }}% High-Value</div>
+            </div>
+            <div style="height:270px;position:relative;">
+                <canvas id="chart-premium-ratio"></canvas>
+            </div>
+        </div>
+
+        <!-- Category Distribution (Horizontal Bar Chart) -->
+        <div class="glass-panel" style="padding:1.6rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+                <div>
+                    <h4 style="font-size:1.1rem;">Revenue by Product Category</h4>
+                    <p style="color:var(--text-muted);font-size:0.8rem;">High-ticket vertical analysis</p>
+                </div>
+            </div>
+            <div style="height:270px;position:relative;">
+                <canvas id="chart-category-bar"></canvas>
+            </div>
+        </div>
+
+        <!-- Monthly Comparison & Volume -->
+        <div class="glass-panel" style="padding:1.6rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+                <div>
+                    <h4 style="font-size:1.1rem;">Monthly Deal Volume &amp; Yield</h4>
+                    <p style="color:var(--text-muted);font-size:0.8rem;">Monthly revenue bars overlaid with deal count</p>
+                </div>
+            </div>
+            <div style="height:270px;position:relative;">
+                <canvas id="chart-monthly-comparison"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. RECENT TRANSACTIONS TABLE & QUICK CONTROLS -->
+    <div class="glass-panel" style="padding:1.6rem;margin-bottom:2rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem;">
+            <div>
+                <h3 style="font-size:1.25rem;">Recent Sales Stream</h3>
+                <p style="color:var(--text-muted);font-size:0.85rem;">Latest transactions recorded in your private ledger</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+                <a href="{{ url_for('transactions.index') }}" class="btn-cyber-outline" style="padding:0.45rem 1rem;font-size:0.85rem;">
+                    View All ({{ agg.total_count }}) &rarr;
+                </a>
+                <a href="{{ url_for('transactions.add') }}" class="btn-cyber-primary" style="padding:0.45rem 1rem;font-size:0.85rem;">
+                    + New Sale
+                </a>
+            </div>
+        </div>
+
+        {% if recent_transactions %}
+            <div class="cyber-table-wrap">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Deal / Product</th>
+                            <th>Category</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total Amount</th>
+                            <th>Classification</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in recent_transactions %}
+                            <tr class="{% if s.total_amount >= threshold %}row-premium{% endif %}">
+                                <td>
+                                    <div style="font-weight:600;color:#ffffff;">{{ s.product_name }}</div>
+                                    <div style="font-size:0.75rem;color:var(--text-muted);">ID: #{{ s.id }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge-category">{{ s.category }}</span>
+                                </td>
+                                <td>
+                                    <span style="color:#cbd5e1;">{{ s.customer_name or 'Enterprise Client' }}</span>
+                                </td>
+                                <td class="font-mono-numbers" style="color:var(--text-secondary);">
+                                    {{ s.transaction_date.strftime('%Y-%m-%d') }}
+                                </td>
+                                <td class="font-mono-numbers">{{ s.quantity }}</td>
+                                <td class="font-mono-numbers" style="color:var(--text-secondary);">
+                                    {{ current_user.currency }}{{ "%.2f"|format(s.unit_price) }}
+                                </td>
+                                <td class="font-mono-numbers" style="font-weight:700;font-size:0.95rem;color:{% if s.total_amount >= threshold %}#fde68a{% else %}#22d3ee{% endif %};">
+                                    {{ current_user.currency }}{{ "%.2f"|format(s.total_amount) }}
+                                </td>
+                                <td>
+                                    {% if s.total_amount >= threshold %}
+                                        <span class="badge-vip">★ HIGH-VALUE</span>
+                                    {% else %}
+                                        <span class="badge-regular">REGULAR</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button onclick="showTransactionDetails({{ s.id }})" class="btn-cyber-outline" style="padding:0.35rem 0.7rem;font-size:0.78rem;">
+                                        Inspect
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <!-- Empty state screen -->
+            <div style="text-align:center;padding:3.5rem 1rem;">
+                <div style="font-size:2.8rem;margin-bottom:1rem;">📦</div>
+                <h4 style="font-size:1.2rem;margin-bottom:0.5rem;">No Transactions Found</h4>
+                <p style="color:var(--text-secondary);font-size:0.9rem;max-width:420px;margin:0 auto 1.5rem;">
+                    You haven't recorded any sales in this time window yet. Load sample enterprise transactions or create your first deal now.
+                </p>
+                <div style="display:flex;justify-content:center;gap:1rem;">
+                    <form method="POST" action="{{ url_for('dashboard.load_demo_data') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-cyber-primary">Preload Enterprise Demo Data</button>
+                    </form>
+                    <a href="{{ url_for('transactions.add') }}" class="btn-cyber-outline">+ Add Sale</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Utilities Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;background:rgba(15,22,42,0.5);border:1px solid var(--border-subtle);padding:1rem 1.4rem;border-radius:var(--radius-lg);">
+        <div style="font-size:0.85rem;color:var(--text-secondary);">
+            <span>Database Status: <strong style="color:var(--accent-emerald);">● Synchronized (SQLite)</strong></span>
+            &bull;
+            <span>Active Threshold: <strong style="color:#fde68a;">{{ current_user.currency }}{{ threshold|int }}</strong></span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+            <form method="POST" action="{{ url_for('dashboard.load_demo_data') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-cyber-outline" style="padding:0.4rem 0.85rem;font-size:0.8rem;" title="Reset or populate 20 enterprise deals">
+                    ↺ Reload Demo Deals
+                </button>
+            </form>
+            
+            <a href="{{ url_for('transactions.export_pdf') }}" class="btn-cyber-purple" style="padding:0.4rem 0.85rem;font-size:0.8rem;">
+                Export PDF Intelligence
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
